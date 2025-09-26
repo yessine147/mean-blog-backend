@@ -1,0 +1,20 @@
+{
+  "name": "mean-collab-blog",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "user-service",
+    "article-service",
+    "notification-service"
+  ],
+  "scripts": {
+    "install:all": "npm install -w user-service -w article-service -w notification-service",
+    "dev:backend": "concurrently \"npm:dev --workspace user-service\" \"npm:dev --workspace article-service\" \"npm:dev --workspace notification-service\"",
+    "build:backend": "npm run build -w user-service && npm run build -w article-service && npm run build -w notification-service",
+    "lint": "echo 'Add linting later'",
+    "format": "echo 'Add formatting later'"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}

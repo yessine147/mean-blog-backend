@@ -1,0 +1,73 @@
+version: "3.9"
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  user-service:
+    build:
+      context: ./user-service
+    env_file:
+      - ./user-service/.env
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - MONGO_URI=mongodb://mongo:27017/mean_collab_blog
+      - JWT_SECRET=your-super-secret-jwt-key-here
+      - CORS_ORIGIN=*
+      - ACCESS_TOKEN_EXPIRES_IN=7h
+      - REFRESH_TOKEN_EXPIRES_IN=7d
+    depends_on:
+      - mongo
+    ports:
+      - "3001:3001"
+
+  article-service:
+    build:
+      context: ./article-service
+    env_file:
+      - ./article-service/.env
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - MONGO_URI=mongodb://mongo:27017/mean_collab_blog
+      - JWT_SECRET=your-super-secret-jwt-key-here
+      - CORS_ORIGIN=*
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3003
+      - SERVICE_API_KEY=your-service-api-key-here
+    depends_on:
+      - mongo
+      - notification-service
+    ports:
+      - "3002:3002"
+
+  notification-service:
+    build:
+      context: ./notification-service
+    env_file:
+      - ./notification-service/.env
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - MONGO_URI=mongodb://mongo:27017/mean_collab_blog
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=your-super-secret-jwt-key-here
+      - CORS_ORIGIN=*
+      - SERVICE_API_KEY=your-service-api-key-here
+    depends_on:
+      - redis
+      - mongo
+    ports:
+      - "3003:3003"
+
+volumes:
+  mongo_data:
